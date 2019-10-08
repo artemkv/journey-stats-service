@@ -1,0 +1,43 @@
+{
+  "name": "journey.services.stats",
+  "version": "1.0.0",
+  "description": "Journey Stats Service",
+  "main": "app.js",
+  "author": {
+    "name": "artemkv",
+    "email": "artemkv@gmail.com"
+  },
+  "dependencies": {
+    "@artemkv/datetimeutil": "1.0.0",
+    "@artemkv/errorhandler": "1.0.1",
+    "@artemkv/myrequest": "1.1.1",
+    "@artemkv/readjsonstream": "1.0.0",
+    "@artemkv/resterror": "1.0.0",
+    "@artemkv/reststats": "1.0.0",
+    "@artemkv/statuscodes": "1.0.2",
+    "@artemkv/statusmessages": "1.0.0",
+    "@artemkv/health": "1.1.1",
+    "@artemkv/consolelogger": "1.0.1",
+    "connect": "3.6.6",
+    "content-type": "^1.0.4",
+    "dotenv": "^6.2.0",
+    "serve-favicon": "2.5.0",
+    "uuid": "^3.3.2",
+    "@google-cloud/firestore": "^2.3.0",
+    "@google-cloud/pubsub": "^1.0.0"
+  },
+  "devDependencies": {
+    "chai": "4.1.1",
+    "cross-env": "^5.2.0",
+    "mocha": "5.2.0",
+    "request": "2.88.0",
+    "wait-on": "^3.2.0"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "integration-test": "wait-on http://localhost:8700/stats && mocha integration-test",
+    "test": "cross-env NODE_ENV=test mocha",
+    "docker-build": "docker build -t artemkv/journey-stats-service:${SHORT_HASH} .",
+    "docker-push": "docker push artemkv/journey-stats-service:${SHORT_HASH}"
+  }
+}
