@@ -9,6 +9,8 @@ const myRequest = require('@artemkv/myrequest');
 const version = require('./myversion');
 const logger = require('@artemkv/consolelogger');
 const health = require('@artemkv/health');
+const pubSubConnector = require('./connectorprovider').getPubSubConnector();
+const statsProcessor = require('./statsprocessor');
 
 dotenv.config();
 
@@ -63,6 +65,9 @@ server.listen(port, ip, function () {
     logger.initialize(`${__dirname}/log`);
     logger.log('Application started: http://' + ip + ":" + port + '/');
     restStats.initialize(version);
+
+    pubSubConnector.subscribeToAction(statsProcessor.handleAction);
+    pubSubConnector.subscribeToError(statsProcessor.handleError);
 
     // everything has been initialized
     health.setIsReady();
