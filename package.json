@@ -8,7 +8,7 @@
     "email": "artemkv@gmail.com"
   },
   "dependencies": {
-    "@artemkv/datetimeutil": "1.0.0",
+    "@artemkv/datetimeutil": "1.1.0",
     "@artemkv/errorhandler": "1.0.1",
     "@artemkv/myrequest": "1.1.1",
     "@artemkv/readjsonstream": "1.0.0",

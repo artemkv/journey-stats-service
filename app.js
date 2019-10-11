@@ -69,6 +69,11 @@ server.listen(port, ip, function () {
     pubSubConnector.subscribeToAction(statsProcessor.handleAction);
     pubSubConnector.subscribeToError(statsProcessor.handleError);
 
+    // TODO: debug code
+
+    let action = JSON.parse('{"aid":"9735965b-e1cb-4d7f-adb9-a4adf457f61a","uid":"ceb2a540-48c7-40ec-bc22-24ffd54d880d","act":"act_complete_trial","par":"aaa","dts":"2019-10-08T20:21:04.047Z"}');
+    statsProcessor.handleAction({ id: "mock", data: action, ack: function() { console.log("acked"); } });
+
     // everything has been initialized
     health.setIsReady();
 });
