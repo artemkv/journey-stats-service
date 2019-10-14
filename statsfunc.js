@@ -2,6 +2,8 @@
 
 const dt = require('@artemkv/datetimeutil');
 
+// Pure function go here
+
 const validateAction = function validateAction(action) {
     if (!action) {
         return { error: "action is empty" };
@@ -39,7 +41,27 @@ const getMonthDt = function getMonthDt(date) {
     return dt.getYearString(dateUtc) + dt.getMonthString(dateUtc);
 }
 
+const extractNewStage = function (action) {
+    if (action === "act_land_on_site") {
+        return "stage_ftv";
+    }
+    if (action === "act_complete_trial") {
+        return "stage_engage";
+    }
+    if (action === "act_begin_signup") {
+        return "stage_signup";
+    }
+    if (action === "act_complete_signup") {
+        return "stage_committed";
+    }
+    if (action === "act_payment") {
+        return "stage_paid";
+    }
+    return null;
+}
+
 exports.validateAction = validateAction;
 exports.getHourDt = getHourDt;
 exports.getDayDt = getDayDt;
 exports.getMonthDt = getMonthDt;
+exports.extractNewStage = extractNewStage;

@@ -18,11 +18,18 @@ async function processAction(message) {
         throw new Error(`Application '${action.aid}' does not exist`);
     }
 
-    await storeConnector.updateUserStats(
-        action,
-        statsFunctions.getHourDt(action.dts),
-        statsFunctions.getDayDt(action.dts),
-        statsFunctions.getMonthDt(action.dts))
+    let hourDt = statsFunctions.getHourDt(action.dts);
+    let dayDt = statsFunctions.getDayDt(action.dts);
+    let monthDt = statsFunctions.getMonthDt(action.dts);
+
+    // User stats
+    await storeConnector.updateUserStats(action, hourDt, dayDt, monthDt);
+
+    // User stage stats
+    let newStage = statsFunctions.extractNewStage(action.act);
+    if (newStage) {
+        await storeConnector.updateUserStageStats(action, newStage, hourDt, dayDt, monthDt);
+    }
 
     // TODO: continue, other stats
 };

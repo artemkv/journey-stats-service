@@ -63,5 +63,45 @@ const updateUserStats = async function updateUserStats(action, hourDt, dayDt, mo
     }
 }
 
+const updateUserStageStats = async function updateUserStageStats(action, stage, hourDt, dayDt, monthDt) {
+    let userKey = `${action.aid}.${action.uid}`
+    let dayKey = `${action.aid}.${stage}.${dayDt}`
+    let monthKey = `${action.aid}.${stage}.${monthDt}`
+
+    await db.runTransaction(async function(ts) {
+        let userStage = db.collection("user.stage").doc(userKey);
+        let userStageValue = await ts.get(userStage);
+
+        let currentStage = null;
+        if (userStageValue.exists) {
+            currentStage = userStageValue.stage;
+        }
+
+        if (!currentStage || currentStage !== stage) {
+            let stageHitsByDay = db.collection("stage.hits.byday").doc(dayKey);
+            let stageHitsByMonth = db.collection("stage.hits.bymonth").doc(monthKey);
+            let stageStaysByDay = db.collection("stage.stays.byday").doc(dayKey);
+            let stageStaysByMonth = db.collection("stage.stays.bymonth").doc(monthKey);
+
+            // Make sure the record exists so we could update it safely
+            ts.set(userStage, {}, { merge: true });
+            ts.set(stageHitsByDay, {}, { merge: true });
+            ts.set(stageHitsByMonth, {}, { merge: true });
+            ts.set(stageStaysByDay, {}, { merge: true });
+            ts.set(stageStaysByMonth, {}, { merge: true });
+
+            ts.update(userStage, { stage: stage, dt: hourDt });
+
+            ts.update(stageHitsByDay, { count: increment });
+            ts.update(stageHitsByMonth, { count: increment });
+
+            ts.update(stageStaysByDay, { count: increment });
+            ts.update(stageStaysByMonth, { count: increment });
+        }
+    });
+    console.log("** trans committed **");
+}
+
 exports.updateUserStats = updateUserStats;
+exports.updateUserStageStats = updateUserStageStats;
 exports.appExists = appExists;
