@@ -29,10 +29,18 @@ async function processAction(message) {
 
 const handleAction = function handleAction(message) {
     logger.log(`Received action ${message.id}:`);
-    processAction(message)
-        .then(() => logger.log(`Updated stats for action ${message.id}.`))
-        .catch((err) => logger.log(`Failed to update stats for action ${message.id}: ${err}`))
-        .finally(() => message.ack());
+    return processAction(message)
+        .then(() => {
+            logger.log(`Updated stats for action ${message.id}.`);
+            return { ok: true };
+         })
+        .catch((err) => {
+            logger.log(`Failed to update stats for action ${message.id}: ${err}`);
+            return { error: err.message };
+        })
+        .finally(() => {
+            message.ack();
+        });
 }
 
 // TODO: implement

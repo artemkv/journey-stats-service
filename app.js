@@ -73,8 +73,11 @@ server.listen(port, ip, function () {
 
 //    let action = JSON.parse('{"aid":"test_KvQhf0pLxzd4z7nE9r1Z","uid":"ceb2a540-48c7-40ec-bc22-24ffd54d880d","act":"act_complete_trial","par":"aaa","dts":"2019-10-08T20:21:04.047Z"}');
 //    let action = JSON.parse('{"aid":"test_KvQhf0pLxzd4z7nE9r1","uid":"ceb2a540-48c7-40ec-bc22-24ffd54d880d","act":"act_complete_trial","par":"aaa","dts":"2019-10-08T20:21:04.047Z"}');
-    let action = JSON.parse('{"aid":"test_KvQhf0pLxzd4z7nE9r11","act":"act_complete_trial","par":"aaa","dts":"2019-10-08T20:21:04.047Z"}');
-    statsProcessor.handleAction({ id: "mock", data: action, ack: function() { console.log("acked"); } });
+    let action = JSON.parse('{"act":"act_complete_trial","par":"aaa","dts":"2019-10-08T20:21:04.047Z"}');
+    statsProcessor.handleAction({ id: "mock", data: action, ack: function() { console.log("acked"); } })
+        .then(x => {
+            console.log("*** result is " + JSON.stringify(x));
+        });
 
     // everything has been initialized
     health.setIsReady();
