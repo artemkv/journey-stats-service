@@ -8,16 +8,16 @@ const validateAction = function validateAction(action) {
     }
 
     if (!action.aid) {
-        return { error: "missing or empty attribute aid" };
+        return { error: "missing or empty attribute 'aid'" };
     }
     if (!action.uid) {
-        return { error: "missing or empty attribute uid" };
+        return { error: "missing or empty attribute 'uid'" };
     }
     if (!action.act) {
-        return { error: "missing or empty attribute act" };
+        return { error: "missing or empty attribute 'act'" };
     }
     if (!action.dts) {
-        return { error: "missing or empty attribute dts" };
+        return { error: "missing or empty attribute 'dts'" };
     }
     return { ok: true }
 }

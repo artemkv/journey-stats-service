@@ -7,13 +7,16 @@ const storeConnector = require('./firestoreconnector'); // TODO: get from connec
 async function processAction(message) {
     let action = message.data;
 
+    // Structural validation
     let validationResult = statsFunctions.validateAction(action);
     if (validationResult.error) {
-        logger.log("Skipping invalid action: " + error);
-        return;
+        throw new Error(validationResult.error);
     }
 
-    // TODO: validate aid with database
+    // Check with database
+    if (! await storeConnector.appExists(action.aid)) {
+        throw new Error(`Application '${action.aid}' does not exist`);
+    }
 
     await storeConnector.updateUserStats(
         action,

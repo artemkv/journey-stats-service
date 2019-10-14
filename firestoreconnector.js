@@ -8,6 +8,14 @@ dotenv.config();
 const db = new Firestore();
 const increment = Firestore.FieldValue.increment(1);
 
+const appExists = async function appExists(aid) {
+    let app = await db.collection("apps").doc(aid).get();
+    if (app.exists) {
+        return true;
+    }
+    return false;
+}
+
 const updateUserStats = async function updateUserStats(action, hourDt, dayDt, monthDt) {
     let hourKey = `${action.aid}.${action.uid}.${hourDt}`
     let dayKey = `${action.aid}.${action.uid}.${dayDt}`
@@ -32,6 +40,8 @@ const updateUserStats = async function updateUserStats(action, hourDt, dayDt, mo
     await uniqueUsersByMonth.set({}, { merge: true });
 
     // Get current values - at least one of the instances should see value of 0
+    // In theory it can be that 2 instances both see the value of 0 and increment
+    // This could be avoided in several ways, but I am going to ignore it for now
     let uniqueVisitsByHourValue = await uniqueVisitsByHour.get();
     let uniqueVisitsByDayValue = await uniqueVisitsByDay.get();
     let uniqueVisitsByMonthValue = await uniqueVisitsByMonth.get();
@@ -54,3 +64,4 @@ const updateUserStats = async function updateUserStats(action, hourDt, dayDt, mo
 }
 
 exports.updateUserStats = updateUserStats;
+exports.appExists = appExists;
