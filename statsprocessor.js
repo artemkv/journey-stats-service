@@ -2,7 +2,7 @@
 
 const logger = require('@artemkv/consolelogger');
 const statsFunctions = require('./statsfunc');
-const storeConnector = require('./firestoreconnector'); // TODO: get from connection provider
+const storeConnector = require('./connectorprovider').getStoreConnector();
 
 async function processAction(message) {
     let action = message.data;
