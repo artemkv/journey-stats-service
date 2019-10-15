@@ -39,6 +39,9 @@ it(':) Submit action message', function (done) {
             expect(storeConnector.lastUpdateUserStatsCallData.dayDt).to.equal('20191008');
             expect(storeConnector.lastUpdateUserStatsCallData.monthDt).to.equal('201910');
 
+            expect(storeConnector.lastUpdateUserStageStatsCallData.isCalled).to.equal(true);
+            expect(storeConnector.lastUpdateUserStageStatsCallData.newStage).to.equal("stage_engage");
+
             return done();
         });
 });

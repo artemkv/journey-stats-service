@@ -6,10 +6,14 @@ let lastAppExistsCallData = {
 let lastUpdateUserStatsCallData = {
     isCalled: false
 };
+let lastUpdateUserStageStatsCallData = {
+    isCalled: false
+};
 
 const testInit = function testInit() {
     lastAppExistsCallData.isCalled = false;
     lastUpdateUserStatsCallData.isCalled = false;
+    lastUpdateUserStageStatsCallData.isCalled = false;
 }
 
 const appExists = async function appExists(aid) {
@@ -21,7 +25,7 @@ const appExists = async function appExists(aid) {
     return false;
 }
 
-const updateUserStats = async function updateUserStats(action, hourDt, dayDt, monthDt) {
+const updateUserStats = function updateUserStats(action, hourDt, dayDt, monthDt) {
     lastUpdateUserStatsCallData.isCalled = true;
     lastUpdateUserStatsCallData.action = action;
     lastUpdateUserStatsCallData.hourDt = hourDt;
@@ -29,9 +33,20 @@ const updateUserStats = async function updateUserStats(action, hourDt, dayDt, mo
     lastUpdateUserStatsCallData.monthDt = monthDt;
 }
 
+const updateUserStageStats = function updateUserStageStats(action, newStage, hourDt, dayDt, monthDt) {
+    lastUpdateUserStageStatsCallData.isCalled = true;
+    lastUpdateUserStageStatsCallData.action = action;
+    lastUpdateUserStageStatsCallData.newStage = newStage;
+    lastUpdateUserStageStatsCallData.hourDt = hourDt;
+    lastUpdateUserStageStatsCallData.dayDt = dayDt;
+    lastUpdateUserStageStatsCallData.monthDt = monthDt;
+}
+
 exports.testInit = testInit;
 exports.lastAppExistsCallData = lastAppExistsCallData;
 exports.lastUpdateUserStatsCallData = lastUpdateUserStatsCallData;
+exports.lastUpdateUserStageStatsCallData = lastUpdateUserStageStatsCallData;
 
 exports.updateUserStats = updateUserStats;
+exports.updateUserStageStats = updateUserStageStats;
 exports.appExists = appExists;

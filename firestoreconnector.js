@@ -99,7 +99,6 @@ const updateUserStageStats = async function updateUserStageStats(action, stage, 
             ts.update(stageStaysByMonth, { count: increment });
         }
     });
-    console.log("** trans committed **");
 }
 
 exports.updateUserStats = updateUserStats;
