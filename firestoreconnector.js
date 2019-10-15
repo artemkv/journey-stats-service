@@ -1,6 +1,7 @@
 "use strict";
 
 const dotenv = require('dotenv');
+const statsFunctions = require('./statsfunc');
 const { Firestore } = require('@google-cloud/firestore');
 
 dotenv.config();
@@ -65,23 +66,24 @@ const updateUserStats = async function updateUserStats(action, hourDt, dayDt, mo
 
 const updateUserStageStats = async function updateUserStageStats(action, stage, hourDt, dayDt, monthDt) {
     let userKey = `${action.aid}.${action.uid}`
-    let dayKey = `${action.aid}.${stage}.${dayDt}`
-    let monthKey = `${action.aid}.${stage}.${monthDt}`
+
+    let newStageDayKey = `${action.aid}.${stage}.${dayDt}`
+    let newStageMonthKey = `${action.aid}.${stage}.${monthDt}`
 
     await db.runTransaction(async function(ts) {
         let userStage = db.collection("user.stage").doc(userKey);
         let userStageValue = await ts.get(userStage);
 
-        let currentStage = null;
+        let prevStage = null;
         if (userStageValue.exists) {
-            currentStage = userStageValue.stage;
+            prevStage = userStageValue.data().stage;
         }
 
-        if (!currentStage || currentStage !== stage) {
-            let stageHitsByDay = db.collection("stage.hits.byday").doc(dayKey);
-            let stageHitsByMonth = db.collection("stage.hits.bymonth").doc(monthKey);
-            let stageStaysByDay = db.collection("stage.stays.byday").doc(dayKey);
-            let stageStaysByMonth = db.collection("stage.stays.bymonth").doc(monthKey);
+        if (!prevStage || prevStage !== stage) {
+            let stageHitsByDay = db.collection("stage.hits.byday").doc(newStageDayKey);
+            let stageHitsByMonth = db.collection("stage.hits.bymonth").doc(newStageMonthKey);
+            let stageStaysByDay = db.collection("stage.stays.byday").doc(newStageDayKey);
+            let stageStaysByMonth = db.collection("stage.stays.bymonth").doc(newStageMonthKey);
 
             // Make sure the record exists so we could update it safely
             ts.set(userStage, {}, { merge: true });
@@ -97,6 +99,23 @@ const updateUserStageStats = async function updateUserStageStats(action, stage, 
 
             ts.update(stageStaysByDay, { count: increment });
             ts.update(stageStaysByMonth, { count: increment });
+
+            if (prevStage) {
+                if (statsFunctions.getDayDtFromHourDt(userStageValue.data().dt) !== dayDt) {
+                    let prevStageDayKey = `${action.aid}.${prevStage}.${dayDt}`
+                    let prevStageStaysByDay = db.collection("stage.stays.byday").doc(prevStageDayKey);
+                    // Make sure the record exists so we could update it safely
+                    ts.set(prevStageStaysByDay, {}, { merge: true });
+                    ts.update(prevStageStaysByDay, { count: increment });
+                }
+                if (statsFunctions.getMonthDtFromHourDt(userStageValue.data().dt) !== monthDt) {
+                    let prevStageMonthKey = `${action.aid}.${prevStage}.${monthDt}`
+                    let prevStageStaysByMonth = db.collection("stage.stays.bymonth").doc(prevStageMonthKey);
+                    // Make sure the record exists so we could update it safely
+                    ts.set(prevStageStaysByMonth, {}, { merge: true });
+                    ts.update(prevStageStaysByMonth, { count: increment });
+                }
+            }
         }
     });
 }

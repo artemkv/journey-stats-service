@@ -41,6 +41,14 @@ const getMonthDt = function getMonthDt(date) {
     return dt.getYearString(dateUtc) + dt.getMonthString(dateUtc);
 }
 
+const getDayDtFromHourDt = function getDayDtFromHourDt(hourDt) {
+    return hourDt.substr(0, 8);
+}
+
+const getMonthDtFromHourDt = function getMonthDtFromHourDt(hourDt) {
+    return hourDt.substr(0, 6);
+}
+
 const extractNewStage = function (action) {
     if (action === "act_land_on_site") {
         return "stage_ftv";
@@ -65,3 +73,5 @@ exports.getHourDt = getHourDt;
 exports.getDayDt = getDayDt;
 exports.getMonthDt = getMonthDt;
 exports.extractNewStage = extractNewStage;
+exports.getDayDtFromHourDt = getDayDtFromHourDt;
+exports.getMonthDtFromHourDt = getMonthDtFromHourDt;
