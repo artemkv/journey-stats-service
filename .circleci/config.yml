@@ -25,7 +25,9 @@ jobs:
       - checkout
 
       - setup_remote_docker:
-          docker_layer_caching: true
+          # not possible in free tier anymore
+          # docker_layer_caching: true
+          docker_layer_caching: false
 
       # Download and cache dependencies
       - restore_cache:
