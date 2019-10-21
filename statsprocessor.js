@@ -31,6 +31,8 @@ async function processAction(message) {
         await storeConnector.updateUserStageStats(action, newStage, hourDt, dayDt, monthDt);
     }
 
+    await storeConnector.updateActionStats(action, monthDt);
+
     // TODO: continue, other stats
 };
 

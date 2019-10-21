@@ -120,6 +120,35 @@ const updateUserStageStats = async function updateUserStageStats(action, stage, 
     });
 }
 
+const updateActionStats = async function updateActionStats(action, monthDt) {
+    let userKey = `${action.aid}.${action.uid}`
+    let userStage = await db.collection("user.stage").doc(userKey).get();
+    if (userStage.exists) {
+        var stage = userStage.data().stage;
+
+        let actionByStageKey = `${action.aid}.${monthDt}.${stage}.${action.act}`
+
+        let param = action.par;
+        if (!param) {
+            param = "none";
+        }
+        let actionByParamKey = `${action.aid}.${monthDt}.${action.act}.${param}`
+
+        let actionsByMonthByStage = db.collection("actions.bymonth.bystage").doc(actionByStageKey);
+        let actionsByMonthByParam = db.collection("actions.bymonth.byparam").doc(actionByParamKey);
+
+        // Make sure the record exists so we could update it safely
+        await actionsByMonthByStage.set({}, { merge: true });
+        await actionsByMonthByParam.set({}, { merge: true });
+
+        await actionsByMonthByStage.update({ count: increment });
+        await actionsByMonthByParam.update({ count: increment });
+    } else {
+        throw new Error(`No current stage is registered for user ${action.uid}`);
+    }
+}
+
 exports.updateUserStats = updateUserStats;
 exports.updateUserStageStats = updateUserStageStats;
 exports.appExists = appExists;
+exports.updateActionStats = updateActionStats;

@@ -42,6 +42,10 @@ const updateUserStageStats = function updateUserStageStats(action, newStage, hou
     lastUpdateUserStageStatsCallData.monthDt = monthDt;
 }
 
+const updateActionStats = async function updateActionStats(action, monthDt) {
+    // TODO:
+}
+
 exports.testInit = testInit;
 exports.lastAppExistsCallData = lastAppExistsCallData;
 exports.lastUpdateUserStatsCallData = lastUpdateUserStatsCallData;
@@ -50,3 +54,4 @@ exports.lastUpdateUserStageStatsCallData = lastUpdateUserStageStatsCallData;
 exports.updateUserStats = updateUserStats;
 exports.updateUserStageStats = updateUserStageStats;
 exports.appExists = appExists;
+exports.updateActionStats = updateActionStats;
