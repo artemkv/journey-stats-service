@@ -5,7 +5,7 @@ const statsFunctions = require('./statsfunc');
 const storeConnector = require('./connectorprovider').getStoreConnector();
 
 async function processAction(message) {
-    let action = message.data;
+    let action = JSON.parse(message.data.toString());
 
     // Structural validation
     let validationResult = statsFunctions.validateAction(action);
@@ -52,7 +52,7 @@ const handleAction = async function handleAction(message) {
 }
 
 async function processError(message) {
-    let error = message.data;
+    let error = JSON.parse(message.data.toString());
 
     // Structural validation
     let validationResult = statsFunctions.validateError(error);

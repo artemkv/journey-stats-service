@@ -40,7 +40,7 @@ it(':) Submit action message', function (done) {
         "act":"act_complete_trial",
         "par":"aaa",
         "dts":"2019-10-08T20:21:04.047Z"};
-    statsProcessor.handleAction({ id: "mock", data: action, ack: function() {} })
+    statsProcessor.handleAction({ id: "mock", data: Buffer.from(JSON.stringify(action)), ack: function() {} })
         .then(_ => {
             expect(storeConnector.lastAppExistsCallData.isCalled).to.equal(true);
             expect(storeConnector.lastAppExistsCallData.aid).to.equal('existing');
@@ -67,7 +67,7 @@ it(':) Cannot submit action with inexisting aid', function (done) {
         "act":"act_complete_trial",
         "par":"aaa",
         "dts":"2019-10-08T20:21:04.047Z"};
-    statsProcessor.handleAction({ id: "mock", data: action, ack: function() {} })
+    statsProcessor.handleAction({ id: "mock", data: Buffer.from(JSON.stringify(action)), ack: function() {} })
         .then(_ => {
             expect(storeConnector.lastAppExistsCallData.isCalled).to.equal(true);
             expect(storeConnector.lastAppExistsCallData.aid).to.equal('non-existing');
@@ -88,7 +88,7 @@ it(':) Message is acked when success', function (done) {
         "act":"act_complete_trial",
         "par":"aaa",
         "dts":"2019-10-08T20:21:04.047Z"};
-    statsProcessor.handleAction({ id: "mock", data: action, ack: function() { acked = true; } })
+    statsProcessor.handleAction({ id: "mock", data: Buffer.from(JSON.stringify(action)), ack: function() { acked = true; } })
         .then(_ => {
             expect(storeConnector.lastAppExistsCallData.isCalled).to.equal(true);
             expect(storeConnector.lastUpdateUserStatsCallData.isCalled).to.equal(true);
@@ -109,7 +109,7 @@ it(':) Message is acked when failure', function (done) {
         "act":"act_complete_trial",
         "par":"aaa",
         "dts":"2019-10-08T20:21:04.047Z"};
-    statsProcessor.handleAction({ id: "mock", data: action, ack: function() { acked = true; } })
+    statsProcessor.handleAction({ id: "mock", data: Buffer.from(JSON.stringify(action)), ack: function() { acked = true; } })
         .then(_ => {
             expect(storeConnector.lastAppExistsCallData.isCalled).to.equal(true);
             expect(storeConnector.lastUpdateUserStatsCallData.isCalled).to.equal(false);
@@ -129,7 +129,7 @@ it(':) Submit error message', function (done) {
         "msg":"divide by zero",
         "dtl":"line 1",
         "dts":"2019-10-08T20:21:04.047Z"};
-    statsProcessor.handleError({ id: "mock", data: error, ack: function() {} })
+    statsProcessor.handleError({ id: "mock", data: Buffer.from(JSON.stringify(error)), ack: function() {} })
         .then(_ => {
             expect(storeConnector.lastUpdateErrorStatsCallData.isCalled).to.equal(true);
             expect(storeConnector.lastUpdateErrorStatsCallData.msg).to.equal('divide by zero');
