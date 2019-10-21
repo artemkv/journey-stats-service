@@ -3,6 +3,7 @@
 const dotenv = require('dotenv');
 const statsFunctions = require('./statsfunc');
 const { Firestore } = require('@google-cloud/firestore');
+const sjcl = require('sjcl');
 
 dotenv.config();
 
@@ -148,10 +149,66 @@ const updateActionStats = async function updateActionStats(action, monthDt) {
     }
 }
 
-const updateErrorStats = async function updateErrorStats(action, hourDt, dayDt, monthDt) {
+const updateErrorStats = async function updateErrorStats(error, hourDt, dayDt, monthDt) {
+    let hashArr = sjcl.hash.sha256.hash(`${error.msg}(${error.dtl})`);
+    let hash = hashArr.reduce((prev, curr) => prev + curr + "").replace(/-/g, 'M');
+
+    // Save error
+    let errKey = `${error.aid}.${hash}`
+    let errorRecord = db.collection("error").doc(errKey);
+    await errorRecord.set({ 
+        message: error.msg,
+        details: error.dtl
+    });
+
+    // Error count
+
+    let errorDayKey = `${error.aid}.${dayDt}.${hash}`
+    let errorMonthKey = `${error.aid}.${monthDt}.${hash}`
+
+    let errorsByDay = db.collection("errors.byday").doc(errorDayKey);
+    let errorsByMonth = db.collection("errors.bymonth").doc(errorMonthKey);
+
+    // Make sure the record exists so we could update it safely
+    await errorsByDay.set({}, { merge: true });
+    await errorsByMonth.set({}, { merge: true });
+
+    await errorsByDay.update({ count: increment });
+    await errorsByMonth.update({ count: increment });
+
+    // Total error count
+
+    let dayKey = `${error.aid}.${dayDt}`
+    let monthKey = `${error.aid}.${monthDt}`
+
+    let totalErrorsByDay = db.collection("totalerrors.byday").doc(dayKey);
+    let totalErrorsByMonth = db.collection("totalerrors.bymonth").doc(monthKey);
+
+    // Make sure the record exists so we could update it safely
+    await totalErrorsByDay.set({}, { merge: true });
+    await totalErrorsByMonth.set({}, { merge: true });
+
+    await totalErrorsByDay.update({ count: increment });
+    await totalErrorsByMonth.update({ count: increment });
+
+    // Errors by stage
+
+    let userKey = `${error.aid}.${error.uid}`
+    let userStage = await db.collection("user.stage").doc(userKey).get();
+    if (userStage.exists) {
+        var stage = userStage.data().stage;
+        let errorByStageKey = `${error.aid}.${monthDt}.${stage}.${hash}`
+        let errorsByMonthByStage = db.collection("errors.bymonth.bystage").doc(errorByStageKey);
+
+        // Make sure the record exists so we could update it safely
+        await errorsByMonthByStage.set({}, { merge: true });
+
+        await errorsByMonthByStage.update({ count: increment });
+    }
 }
 
 exports.updateUserStats = updateUserStats;
 exports.updateUserStageStats = updateUserStageStats;
 exports.appExists = appExists;
+exports.updateActionStats = updateActionStats;
 exports.updateErrorStats = updateErrorStats;

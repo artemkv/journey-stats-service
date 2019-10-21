@@ -8,23 +8,24 @@
     "email": "artemkv@gmail.com"
   },
   "dependencies": {
+    "@artemkv/consolelogger": "1.0.1",
     "@artemkv/datetimeutil": "1.1.0",
     "@artemkv/errorhandler": "1.0.1",
+    "@artemkv/health": "1.1.1",
     "@artemkv/myrequest": "1.1.1",
     "@artemkv/readjsonstream": "1.0.0",
     "@artemkv/resterror": "1.0.0",
     "@artemkv/reststats": "1.0.0",
     "@artemkv/statuscodes": "1.0.2",
     "@artemkv/statusmessages": "1.0.0",
-    "@artemkv/health": "1.1.1",
-    "@artemkv/consolelogger": "1.0.1",
+    "@google-cloud/firestore": "^2.3.0",
+    "@google-cloud/pubsub": "^1.0.0",
     "connect": "3.6.6",
     "content-type": "^1.0.4",
     "dotenv": "^6.2.0",
     "serve-favicon": "2.5.0",
-    "uuid": "^3.3.2",
-    "@google-cloud/firestore": "^2.3.0",
-    "@google-cloud/pubsub": "^1.0.0"
+    "sjcl": "^1.0.8",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "chai": "4.1.1",
