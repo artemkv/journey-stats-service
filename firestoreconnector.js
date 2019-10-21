@@ -148,7 +148,10 @@ const updateActionStats = async function updateActionStats(action, monthDt) {
     }
 }
 
+const updateErrorStats = async function updateErrorStats(action, hourDt, dayDt, monthDt) {
+}
+
 exports.updateUserStats = updateUserStats;
 exports.updateUserStageStats = updateUserStageStats;
 exports.appExists = appExists;
-exports.updateActionStats = updateActionStats;
+exports.updateErrorStats = updateErrorStats;

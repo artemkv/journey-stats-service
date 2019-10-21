@@ -24,6 +24,29 @@ const validateAction = function validateAction(action) {
     return { ok: true }
 }
 
+const validateError = function validateError(error) {
+    if (!error) {
+        return { error: "error is empty" };
+    }
+
+    if (!error.aid) {
+        return { error: "missing or empty attribute 'aid'" };
+    }
+    if (!error.uid) {
+        return { error: "missing or empty attribute 'uid'" };
+    }
+    if (!error.msg) {
+        return { error: "missing or empty attribute 'msg'" };
+    }
+    if (!error.dtl) {
+        return { error: "missing or empty attribute 'dtl'" };
+    }
+    if (!error.dts) {
+        return { error: "missing or empty attribute 'dts'" };
+    }
+    return { ok: true }
+}
+
 const getHourDt = function getHourDt(date) {
     let dateUtc = new Date(date);
     return dt.getYearString(dateUtc) + dt.getMonthString(dateUtc) +
@@ -75,3 +98,4 @@ exports.getMonthDt = getMonthDt;
 exports.extractNewStage = extractNewStage;
 exports.getDayDtFromHourDt = getDayDtFromHourDt;
 exports.getMonthDtFromHourDt = getMonthDtFromHourDt;
+exports.validateError = validateError;

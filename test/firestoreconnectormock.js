@@ -9,11 +9,15 @@ let lastUpdateUserStatsCallData = {
 let lastUpdateUserStageStatsCallData = {
     isCalled: false
 };
+let lastUpdateErrorStatsCallData = {
+    isCalled: false
+};
 
 const testInit = function testInit() {
     lastAppExistsCallData.isCalled = false;
     lastUpdateUserStatsCallData.isCalled = false;
     lastUpdateUserStageStatsCallData.isCalled = false;
+    lastUpdateErrorStatsCallData.isCalled = false;
 }
 
 const appExists = async function appExists(aid) {
@@ -46,12 +50,19 @@ const updateActionStats = async function updateActionStats(action, monthDt) {
     // TODO:
 }
 
+const updateErrorStats = async function updateErrorStats(action, hourDt, dayDt, monthDt) {
+    lastUpdateErrorStatsCallData.isCalled = true;
+    lastUpdateErrorStatsCallData.msg = action.msg;
+}
+
 exports.testInit = testInit;
 exports.lastAppExistsCallData = lastAppExistsCallData;
 exports.lastUpdateUserStatsCallData = lastUpdateUserStatsCallData;
 exports.lastUpdateUserStageStatsCallData = lastUpdateUserStageStatsCallData;
+exports.lastUpdateErrorStatsCallData = lastUpdateErrorStatsCallData;
 
 exports.updateUserStats = updateUserStats;
 exports.updateUserStageStats = updateUserStageStats;
 exports.appExists = appExists;
 exports.updateActionStats = updateActionStats;
+exports.updateErrorStats = updateErrorStats;

@@ -19,6 +19,18 @@ it('Validate action contains app id', function (done) {
     return done();
 });
 
+it('Validate error is not null', function (done) {
+    let validationResult = statsFunctions.validateError(null);
+    expect(validationResult.error).to.equal('error is empty');
+    return done();
+});
+
+it('Validate error contains app id', function (done) {
+    let validationResult = statsFunctions.validateError({});
+    expect(validationResult.error).to.equal("missing or empty attribute 'aid'");
+    return done();
+});
+
 it(':) Submit action message', function (done) {
     storeConnector.testInit();
 
@@ -103,6 +115,24 @@ it(':) Message is acked when failure', function (done) {
             expect(storeConnector.lastUpdateUserStatsCallData.isCalled).to.equal(false);
 
             expect(acked).to.equal(true);
+
+            return done();
+        });
+});
+
+it(':) Submit error message', function (done) {
+    storeConnector.testInit();
+
+    let error = {
+        "aid":"existing",
+        "uid":"ceb2a540-48c7-40ec-bc22-24ffd54d880d",
+        "msg":"divide by zero",
+        "dtl":"line 1",
+        "dts":"2019-10-08T20:21:04.047Z"};
+    statsProcessor.handleError({ id: "mock", data: error, ack: function() {} })
+        .then(_ => {
+            expect(storeConnector.lastUpdateErrorStatsCallData.isCalled).to.equal(true);
+            expect(storeConnector.lastUpdateErrorStatsCallData.msg).to.equal('divide by zero');
 
             return done();
         });

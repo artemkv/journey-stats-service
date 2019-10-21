@@ -32,32 +32,61 @@ async function processAction(message) {
     }
 
     await storeConnector.updateActionStats(action, monthDt);
-
-    // TODO: continue, other stats
 };
 
-const handleAction = function handleAction(message) {
+const handleAction = async function handleAction(message) {
     logger.log(`Received action ${message.id}:`);
-    return processAction(message)
-        .then(() => {
-            logger.log(`Updated stats for action ${message.id}.`);
-            return { ok: true };
-         })
-        .catch((err) => {
-            logger.log(`Failed to update stats for action ${message.id}: ${err}`);
-            return { error: err.message };
-        })
-        .finally(() => {
-            message.ack();
-        });
+
+    try {
+        await processAction(message);
+        logger.log(`Updated stats for action ${message.id}.`);
+        return { ok: true };
+    }
+    catch(err) {
+        logger.log(`Failed to update stats for action ${message.id}: ${err}`);
+        return { error: err.message };
+    }
+    finally {
+        message.ack();
+    };
 }
 
-// TODO: implement
-const handleError = function handleError(message) {
+async function processError(message) {
+    let error = message.data;
+
+    // Structural validation
+    let validationResult = statsFunctions.validateError(error);
+    if (validationResult.error) {
+        throw new Error(validationResult.error);
+    }
+
+    // Check with database
+    if (! await storeConnector.appExists(error.aid)) {
+        throw new Error(`Application '${error.aid}' does not exist`);
+    }
+
+    let hourDt = statsFunctions.getHourDt(error.dts);
+    let dayDt = statsFunctions.getDayDt(error.dts);
+    let monthDt = statsFunctions.getMonthDt(error.dts);
+
+    storeConnector.updateErrorStats(error, hourDt, dayDt, monthDt);
+}
+
+const handleError = async function handleError(message) {
     logger.log(`Received error ${message.id}:`);
-    logger.log(`\tData: ${message.data}`);
-    logger.log(`\tAttributes: ${message.attributes}`);
-    message.ack();
+
+    try {
+        await processError(message);
+        logger.log(`Updated stats for error ${message.id}.`);
+        return { ok: true };
+    }
+    catch(err) {
+        logger.log(`Failed to update stats for error ${message.id}: ${err}`);
+        return { error: err.message };
+    }
+    finally {
+        message.ack();
+    };
 };
 
 exports.handleAction = handleAction;
