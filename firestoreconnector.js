@@ -19,14 +19,18 @@ const appExists = async function appExists(aid) {
 }
 
 const updateUserStats = async function updateUserStats(action, hourDt, dayDt, monthDt) {
-    let hourKey = `${action.aid}.${action.uid}.${hourDt}`
-    let dayKey = `${action.aid}.${action.uid}.${dayDt}`
-    let monthKey = `${action.aid}.${action.uid}.${monthDt}`
+    let userHourKey = `${action.aid}.${action.uid}.${hourDt}`
+    let userDayKey = `${action.aid}.${action.uid}.${dayDt}`
+    let userMonthKey = `${action.aid}.${action.uid}.${monthDt}`
 
     // Records to track visits per user per date
-    let uniqueVisitsByHour = db.collection("user.visits.byhour").doc(hourKey);
-    let uniqueVisitsByDay = db.collection("user.visits.byday").doc(dayKey);
-    let uniqueVisitsByMonth = db.collection("user.visits.bymonth").doc(monthKey);
+    let userVisitsByHour = db.collection("user.visits.byhour").doc(userHourKey);
+    let userVisitsByDay = db.collection("user.visits.byday").doc(userDayKey);
+    let userVisitsByMonth = db.collection("user.visits.bymonth").doc(userMonthKey);
+
+    let hourKey = `${action.aid}.${hourDt}`
+    let dayKey = `${action.aid}.${dayDt}`
+    let monthKey = `${action.aid}.${monthDt}`
 
     // Records to track unique users per date
     let uniqueUsersByHour = db.collection("uniqueusers.byhour").doc(hourKey);
@@ -34,9 +38,9 @@ const updateUserStats = async function updateUserStats(action, hourDt, dayDt, mo
     let uniqueUsersByMonth = db.collection("uniqueusers.bymonth").doc(monthKey);
 
     // Make sure the record exists so we could update it safely
-    await uniqueVisitsByHour.set({}, { merge: true });
-    await uniqueVisitsByDay.set({}, { merge: true });
-    await uniqueVisitsByMonth.set({}, { merge: true });
+    await userVisitsByHour.set({}, { merge: true });
+    await userVisitsByDay.set({}, { merge: true });
+    await userVisitsByMonth.set({}, { merge: true });
     await uniqueUsersByHour.set({}, { merge: true });
     await uniqueUsersByDay.set({}, { merge: true });
     await uniqueUsersByMonth.set({}, { merge: true });
@@ -44,23 +48,23 @@ const updateUserStats = async function updateUserStats(action, hourDt, dayDt, mo
     // Get current values - at least one of the instances should see value of 0
     // In theory it can be that 2 instances both see the value of 0 and increment
     // This could be avoided in several ways, but I am going to ignore it for now
-    let uniqueVisitsByHourValue = await uniqueVisitsByHour.get();
-    let uniqueVisitsByDayValue = await uniqueVisitsByDay.get();
-    let uniqueVisitsByMonthValue = await uniqueVisitsByMonth.get();
+    let userVisitsByHourValue = await userVisitsByHour.get();
+    let userVisitsByDayValue = await userVisitsByDay.get();
+    let userVisitsByMonthValue = await userVisitsByMonth.get();
 
     // Increment visits
-    await uniqueVisitsByHour.update({ count: increment });
-    await uniqueVisitsByDay.update({ count: increment });
-    await uniqueVisitsByMonth.update({ count: increment });
+    await userVisitsByHour.update({ count: increment });
+    await userVisitsByDay.update({ count: increment });
+    await userVisitsByMonth.update({ count: increment });
 
     // If for any of the dates we saw 0 before the update, update unique users count
-    if (uniqueVisitsByHourValue.exists && !uniqueVisitsByHourValue.data().count) {
+    if (userVisitsByHourValue.exists && !userVisitsByHourValue.data().count) {
         uniqueUsersByHour.update({ count: increment });
     }
-    if (uniqueVisitsByDayValue.exists && !uniqueVisitsByDayValue.data().count) {
+    if (userVisitsByDayValue.exists && !userVisitsByDayValue.data().count) {
         uniqueUsersByDay.update({ count: increment });
     }
-    if (uniqueVisitsByMonthValue.exists && !uniqueVisitsByMonthValue.data().count) {
+    if (userVisitsByMonthValue.exists && !userVisitsByMonthValue.data().count) {
         uniqueUsersByMonth.update({ count: increment });
     }
 }
