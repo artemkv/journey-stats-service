@@ -80,7 +80,8 @@ const updateUserStageStats = async function updateUserStageStats(action, stage, 
             prevStage = userStageValue.data().stage;
         }
 
-        if (!prevStage || prevStage !== stage) {
+		// only if stage is higher than current stage
+        if (!prevStage || statsFunctions.isLaterStage(prevStage, stage)) {
             let stageHitsByDay = db.collection("stage.hits.byday").doc(newStageDayKey);
             let stageHitsByMonth = db.collection("stage.hits.bymonth").doc(newStageMonthKey);
             let stageStaysByDay = db.collection("stage.stays.byday").doc(newStageDayKey);

@@ -72,7 +72,7 @@ const getMonthDtFromHourDt = function getMonthDtFromHourDt(hourDt) {
     return hourDt.substr(0, 6);
 }
 
-const extractNewStage = function (action) {
+const extractNewStage = function extractNewStage (action) {
     if (action === "act_land_on_site") {
         return "stage_ftv";
     }
@@ -91,6 +91,21 @@ const extractNewStage = function (action) {
     return null;
 }
 
+const isLaterStage = function isLaterStage (prevStage, nextStage) {
+    function getStageIndex(stage) {
+        if (stage === 'stage_ftv') return 0;
+        if (stage === 'stage_engage') return 1;
+        if (stage === 'stage_signup') return 2;
+        if (stage === 'stage_committed') return 3;
+        if (stage === 'stage_paid') return 4;
+    }
+
+    let prevStageIndex = getStageIndex(prevStage);
+    let nextStageIndex = getStageIndex(nextStage);
+
+    return nextStageIndex > prevStageIndex;
+}
+
 exports.validateAction = validateAction;
 exports.getHourDt = getHourDt;
 exports.getDayDt = getDayDt;
@@ -99,3 +114,4 @@ exports.extractNewStage = extractNewStage;
 exports.getDayDtFromHourDt = getDayDtFromHourDt;
 exports.getMonthDtFromHourDt = getMonthDtFromHourDt;
 exports.validateError = validateError;
+exports.isLaterStage = isLaterStage;
