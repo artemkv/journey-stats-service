@@ -23,50 +23,50 @@ const updateUserStats = async function updateUserStats(action, hourDt, dayDt, mo
     let userDayKey = `${action.aid}.${action.uid}.${dayDt}`
     let userMonthKey = `${action.aid}.${action.uid}.${monthDt}`
 
-    // Records to track visits per user per date
-    let userVisitsByHour = db.collection("user.visits.byhour").doc(userHourKey);
-    let userVisitsByDay = db.collection("user.visits.byday").doc(userDayKey);
-    let userVisitsByMonth = db.collection("user.visits.bymonth").doc(userMonthKey);
+    await db.runTransaction(async function (ts) {
+        // Records to track visits per user per date
+        let userVisitsByHour = db.collection("user.visits.byhour").doc(userHourKey);
+        let userVisitsByDay = db.collection("user.visits.byday").doc(userDayKey);
+        let userVisitsByMonth = db.collection("user.visits.bymonth").doc(userMonthKey);
 
-    let hourKey = `${action.aid}.${hourDt}`
-    let dayKey = `${action.aid}.${dayDt}`
-    let monthKey = `${action.aid}.${monthDt}`
+        let hourKey = `${action.aid}.${hourDt}`
+        let dayKey = `${action.aid}.${dayDt}`
+        let monthKey = `${action.aid}.${monthDt}`
 
-    // Records to track unique users per date
-    let uniqueUsersByHour = db.collection("uniqueusers.byhour").doc(hourKey);
-    let uniqueUsersByDay = db.collection("uniqueusers.byday").doc(dayKey);
-    let uniqueUsersByMonth = db.collection("uniqueusers.bymonth").doc(monthKey);
+        // Records to track unique users per date
+        let uniqueUsersByHour = db.collection("uniqueusers.byhour").doc(hourKey);
+        let uniqueUsersByDay = db.collection("uniqueusers.byday").doc(dayKey);
+        let uniqueUsersByMonth = db.collection("uniqueusers.bymonth").doc(monthKey);
 
-    // Make sure the record exists so we could update it safely
-    await userVisitsByHour.set({}, { merge: true });
-    await userVisitsByDay.set({}, { merge: true });
-    await userVisitsByMonth.set({}, { merge: true });
-    await uniqueUsersByHour.set({}, { merge: true });
-    await uniqueUsersByDay.set({}, { merge: true });
-    await uniqueUsersByMonth.set({}, { merge: true });
+        // Current counts
+        let userVisitsByHourValue = await ts.get(userVisitsByHour);
+        let userVisitsByDayValue = await ts.get(userVisitsByDay);
+        let userVisitsByMonthValue = await ts.get(userVisitsByMonth);
 
-    // Get current values - at least one of the instances should see value of 0
-    // In theory it can be that 2 instances both see the value of 0 and increment
-    // This could be avoided in several ways, but I am going to ignore it for now
-    let userVisitsByHourValue = await userVisitsByHour.get();
-    let userVisitsByDayValue = await userVisitsByDay.get();
-    let userVisitsByMonthValue = await userVisitsByMonth.get();
+        // Make sure the record exists so we could update it safely
+        ts.set(userVisitsByHour, {}, { merge: true });
+        ts.set(userVisitsByDay, {}, { merge: true });
+        ts.set(userVisitsByMonth, {}, { merge: true });
+        
+        // Increment visits
+        ts.update(userVisitsByHour, { count: increment });
+        ts.update(userVisitsByDay, { count: increment });
+        ts.update(userVisitsByMonth, { count: increment });
 
-    // Increment visits
-    await userVisitsByHour.update({ count: increment });
-    await userVisitsByDay.update({ count: increment });
-    await userVisitsByMonth.update({ count: increment });
-
-    // If for any of the dates we saw 0 before the update, update unique users count
-    if (userVisitsByHourValue.exists && !userVisitsByHourValue.data().count) {
-        uniqueUsersByHour.update({ count: increment });
-    }
-    if (userVisitsByDayValue.exists && !userVisitsByDayValue.data().count) {
-        uniqueUsersByDay.update({ count: increment });
-    }
-    if (userVisitsByMonthValue.exists && !userVisitsByMonthValue.data().count) {
-        uniqueUsersByMonth.update({ count: increment });
-    }
+        // If the first visit, update unique users count
+        if (!userVisitsByHourValue.exists) {
+            ts.set(uniqueUsersByHour, {}, { merge: true });
+            ts.update(uniqueUsersByHour, { count: increment });
+        }
+        if (!userVisitsByDayValue.exists) {
+            ts.set(uniqueUsersByDay, {}, { merge: true });
+            ts.update(uniqueUsersByDay, { count: increment });
+        }
+        if (!userVisitsByMonthValue.exists) {
+            ts.set(uniqueUsersByMonth, {}, { merge: true });
+            ts.update(uniqueUsersByMonth, { count: increment });
+        }
+    });
 }
 
 const updateUserStageStats = async function updateUserStageStats(action, stage, hourDt, dayDt, monthDt) {
@@ -75,7 +75,7 @@ const updateUserStageStats = async function updateUserStageStats(action, stage, 
     let newStageDayKey = `${action.aid}.${stage}.${dayDt}`
     let newStageMonthKey = `${action.aid}.${stage}.${monthDt}`
 
-    await db.runTransaction(async function(ts) {
+    await db.runTransaction(async function (ts) {
         let userStage = db.collection("user.stage").doc(userKey);
         let userStageValue = await ts.get(userStage);
 
@@ -84,7 +84,7 @@ const updateUserStageStats = async function updateUserStageStats(action, stage, 
             prevStage = userStageValue.data().stage;
         }
 
-		// only if stage is higher than current stage
+        // only if stage is higher than current stage
         if (!prevStage || statsFunctions.isLaterStage(prevStage, stage)) {
             let stageHitsByDay = db.collection("stage.hits.byday").doc(newStageDayKey);
             let stageHitsByMonth = db.collection("stage.hits.bymonth").doc(newStageMonthKey);
@@ -131,27 +131,21 @@ const updateActionStats = async function updateActionStats(action, monthDt) {
     let userStage = await db.collection("user.stage").doc(userKey).get();
     if (userStage.exists) {
         var stage = userStage.data().stage;
-
-        let actionByStageKey = `${action.aid}.${monthDt}.${stage}.${action.act}`
-
-        let param = action.par;
-        if (!param) {
-            param = "none";
-        }
-        let actionByParamKey = `${action.aid}.${monthDt}.${action.act}.${param}`
-
-        let actionsByMonthByStage = db.collection("actions.bymonth.bystage").doc(actionByStageKey);
-        let actionsByMonthByParam = db.collection("actions.bymonth.byparam").doc(actionByParamKey);
-
-        // Make sure the record exists so we could update it safely
-        await actionsByMonthByStage.set({}, { merge: true });
-        await actionsByMonthByParam.set({}, { merge: true });
-
-        await actionsByMonthByStage.update({ count: increment });
-        await actionsByMonthByParam.update({ count: increment });
     } else {
-        throw new Error(`No current stage is registered for user ${action.uid}`);
+        var stage = 'none';
     }
+    let actionByStageKey = `${action.aid}.${monthDt}.${stage}`
+    let actionsByMonthByStage = db.collection("actions.bymonth.bystage").doc(actionByStageKey);
+
+    // Actions by param
+    let param = action.par;
+    if (!param) {
+        param = "none";
+    }
+    let actionByParamKey = `${action.aid}.${monthDt}`
+    let actionsByMonthByParam = db.collection("actions.bymonth.byparam").doc(actionByParamKey);
+    await actionsByMonthByStage.set({ [action.act]: { count: increment } }, { merge: true });
+    await actionsByMonthByParam.set({ [action.act]: { [param]: { count: increment } } }, { merge: true });
 }
 
 const updateErrorStats = async function updateErrorStats(error, hourDt, dayDt, monthDt) {
@@ -161,30 +155,22 @@ const updateErrorStats = async function updateErrorStats(error, hourDt, dayDt, m
     // Save error
     let errKey = `${error.aid}.${hash}`
     let errorRecord = db.collection("error").doc(errKey);
-    await errorRecord.set({ 
+    await errorRecord.set({
         message: error.msg,
         details: error.dtl
     });
 
-    // Error count
-
-    let errorDayKey = `${error.aid}.${dayDt}.${hash}`
-    let errorMonthKey = `${error.aid}.${monthDt}.${hash}`
-
-    let errorsByDay = db.collection("errors.byday").doc(errorDayKey);
-    let errorsByMonth = db.collection("errors.bymonth").doc(errorMonthKey);
-
-    // Make sure the record exists so we could update it safely
-    await errorsByDay.set({}, { merge: true });
-    await errorsByMonth.set({}, { merge: true });
-
-    await errorsByDay.update({ count: increment });
-    await errorsByMonth.update({ count: increment });
-
-    // Total error count
-
     let dayKey = `${error.aid}.${dayDt}`
     let monthKey = `${error.aid}.${monthDt}`
+
+    // Error count
+
+    let errorsByDay = db.collection("errors.byday").doc(dayKey);
+    let errorsByMonth = db.collection("errors.bymonth").doc(monthKey);
+    await errorsByDay.set({ [hash]: { count: increment } }, { merge: true });
+    await errorsByMonth.set({ [hash]: { count: increment } }), { merge: true };
+
+    // Total error count
 
     let totalErrorsByDay = db.collection("totalerrors.byday").doc(dayKey);
     let totalErrorsByMonth = db.collection("totalerrors.bymonth").doc(monthKey);
@@ -202,13 +188,9 @@ const updateErrorStats = async function updateErrorStats(error, hourDt, dayDt, m
     let userStage = await db.collection("user.stage").doc(userKey).get();
     if (userStage.exists) {
         var stage = userStage.data().stage;
-        let errorByStageKey = `${error.aid}.${monthDt}.${stage}.${hash}`
+        let errorByStageKey = `${error.aid}.${monthDt}.${stage}`
         let errorsByMonthByStage = db.collection("errors.bymonth.bystage").doc(errorByStageKey);
-
-        // Make sure the record exists so we could update it safely
-        await errorsByMonthByStage.set({}, { merge: true });
-
-        await errorsByMonthByStage.update({ count: increment });
+        await errorsByMonthByStage.set({ [hash]: { count: increment } }, { merge: true });
     }
 }
 
